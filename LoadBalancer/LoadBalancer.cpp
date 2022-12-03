@@ -9,7 +9,13 @@ DWORD print1ID, print2ID;
 HANDLE hPrint1, hPrint2;
 
 
+DWORD WINAPI f1(LPVOID lpParam) {
+   return WorkerEcho();
+}
 
+DWORD WINAPI f2(LPVOID lpParam) {
+   return ClientLink();
+}
 
 
 
@@ -17,11 +23,13 @@ HANDLE hPrint1, hPrint2;
 
 int  main(void)
 {
-    //hPrint1 = CreateThread(NULL, 0, WorkerEcho, NULL, 0, &print1ID);
-   // hPrint2 = CreateThread(NULL, 0, ClientLink, NULL, 0, &print2ID);
-   
-    
+    DWORD print1ID, print2ID;
+    HANDLE hPrint1, hPrint2;
 
+
+    hPrint1 = CreateThread(NULL, 0, &f1, NULL, 0, &print1ID);
     
-   
+    hPrint2 = CreateThread(NULL, 0, &f2, NULL, 0, &print2ID);
+    
+    int cKey = getchar();
 }

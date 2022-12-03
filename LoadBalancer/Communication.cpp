@@ -1,5 +1,8 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+
+
+//test
 #include <stdio.h>
 #include <stdlib.h>
 #include "Communication.h"
@@ -8,7 +11,7 @@
 #include <Windows.h>
 
 
-
+ 
 
 
 #define DEFAULT_BUFLEN 512
@@ -32,7 +35,7 @@ int WorkerLink(int port, const char* message) {
     // message to send
     const char* messageToSend = "this is a test";
 
-
+      
 
     if (InitializeWindowsSockets() == false)
     {
