@@ -32,4 +32,7 @@ int  main(void)
     hPrint2 = CreateThread(NULL, 0, &f2, NULL, 0, &print2ID);
     
     int cKey = getchar();
+
+    CloseHandle(hPrint1);
+    CloseHandle(hPrint2);
 }

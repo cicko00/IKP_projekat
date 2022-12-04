@@ -49,13 +49,13 @@ int main()
         return -1;
     }
 
-    /* if (connect(client_socket, (SOCKADDR*)&serv_addr, sizeof(serv_addr)) == SOCKET_ERROR)
+    if (connect(client_socket, (SOCKADDR*)&serv_addr, sizeof(serv_addr)) == SOCKET_ERROR)
      {
          printf("Unable to connect to server.\n");
          closesocket(client_socket);
          WSACleanup();
          return 1;
-     }*/
+     }
 
     do
     {
@@ -64,13 +64,13 @@ int main()
 
         iResult = send(client_socket, outgoingBuffer, (int)strlen(outgoingBuffer), 0);  //socket, buffer, lenght, flags
 
-        /*if (iResult == SOCKET_ERROR)
+        if (iResult == SOCKET_ERROR)
         {
             printf("send failed with error: %d\n", WSAGetLastError());
             closesocket(client_socket);
             WSACleanup();
             return 1;
-        }*/
+        }
 
         printf("Poruka je uspesno poslata. Ukupan broj bajtova: %ld\n", iResult);
         printf("Da li zelite da posaljete jos poruka? ");

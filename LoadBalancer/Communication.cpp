@@ -105,7 +105,7 @@ int  ClientLink(){
     // variable used to store function return value
     int iResult;
     // Buffer used for storing incoming data
-    char recvbuf[DEFAULT_BUFLEN];
+    
 
     if (InitializeWindowsSockets() == false)
     {
@@ -191,6 +191,8 @@ int  ClientLink(){
 
         do
         {
+            char recvbuf[DEFAULT_BUFLEN] = "";
+
             // Receive data until the client shuts down the connection
             iResult = recv(acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
             if (iResult > 0)
@@ -204,6 +206,8 @@ int  ClientLink(){
                 WorkerLink(i,recvbuf);
                 
                 AddData(i);
+
+                
                
 
                 
@@ -358,8 +362,11 @@ int WorkerEcho(){
             iResult = recv(acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
             if (iResult > 0)
             {
-                AddElement((int)recvbuf);
-                printf("\nNew worker with port: %s succesfully added\n");
+                int i = atoi(recvbuf);
+                AddElement(i);
+                printf("\nNew worker with port: %d succesfully added\n",i);
+
+               
 
             }
             else if (iResult == 0)
