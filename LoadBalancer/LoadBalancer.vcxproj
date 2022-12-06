@@ -127,11 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CircularBuffer.cpp" />
     <ClCompile Include="Communication.cpp" />
     <ClCompile Include="LoadBalancer.cpp" />
     <ClCompile Include="WorkerList.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CircularBuffer.h" />
     <ClInclude Include="Communication.h" />
     <ClInclude Include="WorkerList.h" />
   </ItemGroup>
