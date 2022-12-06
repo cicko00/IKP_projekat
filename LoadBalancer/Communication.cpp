@@ -9,6 +9,7 @@
 #include <ws2tcpip.h>
 #include "WorkerList.h"
 #include <Windows.h>
+#include "CircularBuffer.h"
 
 
  
@@ -25,9 +26,9 @@ bool InitializeWindowsSockets();
 
 
 
-int WorkerLink(int port, const char* message) {
-
-
+int WorkerLink() {
+    char sendbuf[512]="";
+    const char* message="";
     // socket used to communicate with server
     SOCKET connectSocket = INVALID_SOCKET;
     // variable used to store function return value
@@ -43,7 +44,12 @@ int WorkerLink(int port, const char* message) {
         // by InitializeWindowsSockets() function
         return 1;
     }
+ while (1) {
 
+     strcpy_s(sendbuf, circularBufferPop());
+     
+  if (strcmp(sendbuf,"") !=0) {
+      
     // create a socket
     connectSocket = socket(AF_INET,
         SOCK_STREAM,
@@ -55,7 +61,8 @@ int WorkerLink(int port, const char* message) {
         WSACleanup();
         return 1;
     }
-
+ 
+       int port = findMin();
     // create and initialize address structure
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
@@ -70,17 +77,25 @@ int WorkerLink(int port, const char* message) {
     }
 
     // Send an prepared message with null terminator included
-    iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
+   
 
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("send failed with error: %d\n", WSAGetLastError());
-        closesocket(connectSocket);
-        WSACleanup();
-        return 1;
-    }
+           
+    
+    
+            iResult = send(connectSocket, sendbuf, (int)strlen(sendbuf) + 1, 0);
 
-    printf("Bytes Sent: %ld\n", iResult);
+            if (iResult == SOCKET_ERROR)
+            {
+                printf("send failed with error: %d\n", WSAGetLastError());
+                closesocket(connectSocket);
+                WSACleanup();
+                return 1;
+            }
+            AddData(port);
+            printf("Bytes Sent: %ld : %s\n", iResult,sendbuf);
+  }
+
+ }
 
     // cleanup
     closesocket(connectSocket);
@@ -188,24 +203,31 @@ int  ClientLink(){
             WSACleanup();
             return 1;
         }
-
+        
+       
         do
         {
+            
             char recvbuf[DEFAULT_BUFLEN] = "";
-
             // Receive data until the client shuts down the connection
             iResult = recv(acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
             if (iResult > 0)
             {
-               
-                printf("Message received from client: %s.\n", recvbuf);
-               
-                int i = findMin();
 
-                printf("Sending data to worker on port %d\n", i);
-                WorkerLink(i,recvbuf);
+                int i=circularBufferPush(recvbuf);
                 
-                AddData(i);
+
+
+                printf("Message received from client: %s.message no. %d\n", recvbuf,i);
+                
+                
+                
+               
+                
+
+                
+                
+                
 
                 
                

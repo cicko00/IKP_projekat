@@ -10,6 +10,6 @@ int ClientLink();
 int WorkerEcho();
 
 
-
+int WorkerLink();
 
 #endif

@@ -4,6 +4,8 @@
 
 int circularBufferPush(const char* data);
 
-int circularBufferPop(const char* data);
+const char* circularBufferPop();
+
+bool bufferCheck();
 #endif // ! CircularBuffer
 
