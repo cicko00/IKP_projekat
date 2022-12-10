@@ -26,7 +26,7 @@ bool InitializeWindowsSockets();
 
 
 
-int WorkerLink() {
+int SendToWorker(int &port,char* msg) {
     char sendbuf[512]="";
     const char* message="";
     // socket used to communicate with server

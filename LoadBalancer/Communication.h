@@ -9,7 +9,8 @@ int ClientLink();
 
 int WorkerEcho();
 
+int SendToWorker(int port, char msg[]);
 
-int WorkerLink();
+//int WorkerLink();
 
 #endif
