@@ -29,6 +29,7 @@ bool InitializeWindowsSockets();
 CRITICAL_SECTION cs;
 
 int SendToWorker(int& port, const char* msg,int cnt);
+void DataDistribution();
 
 
 HANDLE semaphore1;           // semafor koji ukazuje da li postoje i koliko, praznih mesta u kruznom baferu. 
@@ -134,14 +135,6 @@ int WorkerLink() {
 
     }
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -567,3 +560,4 @@ bool InitializeWindowsSockets()
     }
     return true;
 }
+

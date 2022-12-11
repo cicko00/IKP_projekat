@@ -12,9 +12,11 @@
 #include <string>
 #include <string.h>
 #include "Communication.h";
+#include "MessageList.h"
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
+
 
 
 DWORD print1ID, print2ID;
@@ -37,9 +39,6 @@ DWORD WINAPI f2(LPVOID lpParam) {
 
 int  main(void)
 {
-  
-
-
 
         printf("Unesite port:\n");
         

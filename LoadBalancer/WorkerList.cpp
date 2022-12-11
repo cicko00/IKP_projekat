@@ -1,6 +1,7 @@
 #include "WorkerList.h"
 #include <stdio.h>
 #include <stdlib.h>
+
 struct node {
 	int port;
 	int data_count=0;
@@ -101,6 +102,53 @@ void PrintList(){
 
 
 
+}
+
+
+int* DistributionData()
+{
+	int niz[3];
+	int prom = 0;
+	int flag;
+	int min = INT_MAX;
+	int max = 0;
+	struct node* maxEl;
+	struct node* minEl;
+	int portMin = 0;
+	int portMax = 0;
+	struct node* str = current;
+
+	while (1) {
+		if (str->data_count <= min) {
+			min = str->data_count;
+			portMin = str->port;
+			minEl = str;
+		}
+		if (str->data_count >= max)
+		{
+			max = str->data_count;
+			portMax = str->port;
+			maxEl = str;
+		}
+		if (str->head == NULL) {
+			break;
+		}
+		str = str->head;
+	}
+	if ((max - min) > 1)
+	{
+		prom = (max - min) / 2;
+		minEl->data_count -= prom;
+		maxEl->data_count += prom;
+		flag = 0;
+	}
+	else
+	{
+		flag = 1;
+	}
+	niz[0] = portMin;
+	niz[1] = prom;
+	niz[2] = flag;
 }
 
 
