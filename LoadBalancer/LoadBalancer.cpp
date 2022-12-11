@@ -3,11 +3,7 @@
 #include <stdio.h>
 #include "Communication.h"
 #include "CircularBuffer.h"
-
-
-
-
-
+#include "WorkerList.h"
 
 DWORD WINAPI f1(LPVOID lpParam) {
    return WorkerEcho();
@@ -21,20 +17,11 @@ DWORD WINAPI f3(LPVOID lpParam) {
     return WorkerLink();
 }
 
-
-
-
-
 int  main(void)
 {
+
     DWORD print1ID, print2ID, print3ID;
     HANDLE hPrint1, hPrint2, hPrint3;
-
-    
-
-    
-    
-
 
     hPrint1 = CreateThread(NULL, 0, &f1, NULL, 0, &print1ID);
     

@@ -1,7 +1,4 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-
-
-
 //test
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,14 +9,6 @@
 #include "CircularBuffer.h"
 #include <conio.h>
 
-
- 
-
-
-
-
-
-
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT_CLIENTLINK "5059"
 #define DEFAULT_PORT_WORKERECHO "5058"
@@ -29,21 +18,25 @@ bool InitializeWindowsSockets();
 CRITICAL_SECTION cs;
 
 int SendToWorker(int& port, const char* msg,int cnt);
-void DataDistribution();
+int SendToWorker_We(int& pMin, int& pMax, int count, int& data);
+
 
 
 HANDLE semaphore1;           // semafor koji ukazuje da li postoje i koliko, praznih mesta u kruznom baferu. 
 HANDLE semaphore2;            // semafor koji ukazuje koliko mesta je popunjeno u kruznom baferom.
 HANDLE semaphore3;
-
+HANDLE semaphore_1;           // semafor koji ukazuje da li postoje i koliko, praznih mesta u kruznom baferu. 
+HANDLE semaphore_2;            // semafor koji ukazuje koliko mesta je popunjeno u kruznom baferom.
+HANDLE semaphore_3;
 
 
 HANDLE semaphores[3] = { semaphore1,semaphore2,semaphore3 };
+HANDLE semaphores_we[3] = { semaphore_1, semaphore_2, semaphore_3 };
 
 
-int port[3];
- char msg[3][512];
-int i = 0;
+int port[3], port_weMax[3], port_weMin[3], brojPoruka[3];
+char msg[3][512];
+int i = 0, j = 0;
 
 struct param1 {
     int cnt=0;
@@ -65,9 +58,36 @@ struct param3 {
    const char* c = msg[2];
 
 }PARAM3;
+/// <summary>
+/// //////////////////////////////////////////////////////
+/// </summary>
+struct param_1 {
+    int cnt = 0;
+    int* pMin = &port_weMin[0];
+    int* pMax = &port_weMax[0];
+    int* d = &brojPoruka[0];
 
-DWORD print1ID, print2ID, print3ID;
-HANDLE hPrint1, hPrint2, hPrint3;
+}PARAM_1;
+
+struct param_2 {
+    int cnt = 1;
+    int* pMin = &port_weMin[1];
+    int* pMax = &port_weMax[1];
+    int* d = &brojPoruka[1];
+
+}PARAM_2;
+
+struct param_3 {
+    int cnt = 2;
+    int* pMin = &port_weMin[2];
+    int* pMax = &port_weMax[2];
+    int* d = &brojPoruka[2];
+
+}PARAM_3;
+
+DWORD print1ID, print2ID, print3ID, print1_ID, print2_ID, print3_ID;
+HANDLE hPrint1, hPrint2, hPrint3, hPrint_1, hPrint_2, hPrint_3;
+
 
 
 DWORD WINAPI ff1(LPVOID lpParam) {
@@ -97,6 +117,40 @@ DWORD WINAPI ff3(LPVOID lpParam) {
     return SendToWorker(*p, c, cnt);
 }
 
+/// <summary>
+/// //////////////////////////////////////////////
+/// </summary>
+
+DWORD WINAPI f1_we(LPVOID lpParam) {
+
+
+    int* pMin = (*(param_1*)lpParam).pMin;
+    int* pMax = (*(param_1*)lpParam).pMax;
+    int* c = (*(param_1*)lpParam).d;
+    int cnt = (*(param_1*)lpParam).cnt;
+
+    return SendToWorker_We(*pMax, *pMin, cnt, *c);
+}
+
+
+DWORD WINAPI f2_we(LPVOID lpParam) {
+    int* pMin = (*(param_2*)lpParam).pMin;
+    int* pMax = (*(param_2*)lpParam).pMax;
+    int* c = (*(param_2*)lpParam).d;
+    int cnt = (*(param_2*)lpParam).cnt;
+
+    return SendToWorker_We(*pMax, *pMin, cnt, *c);
+
+}
+DWORD WINAPI f3_we(LPVOID lpParam) {
+    int* pMin = (*(param_3*)lpParam).pMin;
+    int* pMax = (*(param_3*)lpParam).pMax;
+    int* c = (*(param_3*)lpParam).d;
+    int cnt = (*(param_3*)lpParam).cnt;
+
+    return SendToWorker_We(*pMax, *pMin, cnt, *c);
+}
+
 int WorkerLink() {
 
     semaphores[0] = CreateSemaphore(0, 0, 1, NULL);
@@ -118,8 +172,6 @@ int WorkerLink() {
             port[i] = findMin();
             strcpy_s(msg[i], poruka);
            
-            
-            
             ReleaseSemaphore(semaphores[i], 1, 0);
 
             if (i == 2)
@@ -130,13 +182,75 @@ int WorkerLink() {
 
             //pusti semafor
         }
-
-
-
     }
 }
 
+int SendToWorker_We(int &port_weMax, int &port_weMin, int cnt, int &brojPoruka)
+{
+    SOCKET connectSocket = INVALID_SOCKET;
+    // variable used to store function return value
+    int iResult;
 
+    if (InitializeWindowsSockets() == false)
+    {
+        // we won't log anything since it will be logged
+        // by InitializeWindowsSockets() function
+        return 1;
+    }
+    while (1)
+    {
+        WaitForSingleObject(semaphores_we[cnt], INFINITE); //da li ima max vrednost
+
+        // create a socket
+        connectSocket = socket(AF_INET,
+            SOCK_STREAM,
+            IPPROTO_TCP);
+
+        if (connectSocket == INVALID_SOCKET)
+        {
+            printf("socket failed with error: %ld\n", WSAGetLastError());
+            WSACleanup();
+            return 1;
+        }
+
+        // create and initialize address structure
+        sockaddr_in serverAddress;
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_addr.s_addr = inet_addr(SERVER_IP_ADDERESS);
+        serverAddress.sin_port = htons(u_short(port_weMax));
+        // connect to server specified in serverAddress and socket connectSocket
+        if (connect(connectSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
+        {
+            printf("Unable to connect to server.\n");
+            closesocket(connectSocket);
+            WSACleanup();
+        }
+
+        // Send an prepared message with null terminator included
+
+        int paket[2];
+        paket[0] = port_weMin;
+        paket[1] = brojPoruka;
+
+        iResult = send(connectSocket, (const char*)paket, (int)strlen((const char*)paket) + 1, 0);
+
+        if (iResult == SOCKET_ERROR)
+        {
+            printf("send failed with error: %d\n", WSAGetLastError());
+            closesocket(connectSocket);
+            WSACleanup();
+            return 1;
+        }
+        
+        printf("Bytes Sent: %ld : port min: %d,broj poruka: %d\n", iResult, paket[0], paket[1]);
+    }
+
+    // cleanup
+    closesocket(connectSocket);
+    WSACleanup();
+
+    return 0;
+}
 
 
 int SendToWorker(int &port,const char* msg,int cnt) {
@@ -160,12 +274,7 @@ int SendToWorker(int &port,const char* msg,int cnt) {
     }
  while (1) 
  {
-
-      WaitForSingleObject(semaphores[cnt],INFINITE);
-      
-         
-
-         
+     WaitForSingleObject(semaphores[cnt],INFINITE);
 
          // create a socket
          connectSocket = socket(AF_INET,
@@ -213,14 +322,11 @@ int SendToWorker(int &port,const char* msg,int cnt) {
 
      
  }
-
     // cleanup
     closesocket(connectSocket);
     WSACleanup();
 
     return 0;
-
-
 }
 
 
@@ -228,7 +334,6 @@ int SendToWorker(int &port,const char* msg,int cnt) {
 
 
 int  ClientLink(){
-
 
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
@@ -332,27 +437,9 @@ int  ClientLink(){
             {
 
                 int i=circularBufferPush(recvbuf);
-                
-
 
                 printf("Message received from client: %s.message no. %d\n", recvbuf,i);
-                
-                
-                
-               
-                
-
-                
-                
-                
-
-                
-               
-
-                
-                
-
-                
+                  
             }
             else if (iResult == 0)
             {
@@ -388,23 +475,18 @@ int  ClientLink(){
     WSACleanup();
 
     return 1;
-
-
-
-
 }
-
-
-
-
-
-
-
-
 
 
 int WorkerEcho(){
 
+    semaphores_we[0] = CreateSemaphore(0, 0, 1, NULL);
+    semaphores_we[1] = CreateSemaphore(0, 0, 1, NULL);
+    semaphores_we[2] = CreateSemaphore(0, 0, 1, NULL);
+
+    hPrint_1 = CreateThread(NULL, 0, &f1_we, &PARAM_1, 0, &print1_ID);
+    hPrint_2 = CreateThread(NULL, 0, &f2_we, &PARAM_2, 0, &print2_ID);
+    hPrint_3 = CreateThread(NULL, 0, &f3_we, &PARAM_3, 0, &print3_ID);
     // Socket used for listening for new clients 
     SOCKET listenSocket = INVALID_SOCKET;
     // Socket used for communication with client
@@ -504,9 +586,32 @@ int WorkerEcho(){
                 int i = atoi(recvbuf);
                 AddElement(i);
                 printf("\nNew worker with port: %d succesfully added\n",i);
+                //port_weMax[3], port_weMin[3], brojPoruka[3]
+                while (1)
+                {
+                    int* niz = DistributionData();
+                    if (niz[3] == 0)
+                    {
+                        port_weMax[j] = niz[0];
+                        port_weMin[j] = niz[1];
+                        brojPoruka[j] = niz[2];
 
-               
+                        ReleaseSemaphore(semaphores_we[j], 1, 0);
 
+                        if (j == 2)
+                        {
+                            j = 0;
+                        }
+                        else
+                        {
+                            j++;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }   
             }
             else if (iResult == 0)
             {
@@ -542,10 +647,6 @@ int WorkerEcho(){
     WSACleanup();
 
     return 0;
-
-
-
-
 }
 
 
@@ -560,4 +661,6 @@ bool InitializeWindowsSockets()
     }
     return true;
 }
+
+
 

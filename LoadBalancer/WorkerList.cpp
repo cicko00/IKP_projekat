@@ -8,8 +8,6 @@ struct node {
 	struct node *head=NULL;
 };
 
-
-
 struct node* first =NULL;
 struct node* current = NULL;
 
@@ -54,9 +52,6 @@ void AddData(int port){
 		s = s->head;
 
 	}
-
-	
-
 }
 
 int findMin() {
@@ -82,8 +77,6 @@ int findMin() {
 	}
 }
 
-
-
 void PrintList(){
 		printf("LISTA:\n\n\n");
 		struct node* s = current;
@@ -99,21 +92,17 @@ void PrintList(){
 			s = s->head;
 
 		}
-
-
-
 }
-
 
 int* DistributionData()
 {
-	int niz[3];
+	int niz[4];
 	int prom = 0;
 	int flag;
 	int min = INT_MAX;
 	int max = 0;
-	struct node* maxEl;
-	struct node* minEl;
+	struct node* maxEl = NULL;
+	struct node* minEl = NULL;
 	int portMin = 0;
 	int portMax = 0;
 	struct node* str = current;
@@ -146,9 +135,12 @@ int* DistributionData()
 	{
 		flag = 1;
 	}
-	niz[0] = portMin;
-	niz[1] = prom;
-	niz[2] = flag;
+	niz[0] = portMax;
+	niz[1] = portMin;
+	niz[2] = prom;
+	niz[3] = flag;
+
+	return niz;
 }
 
 
