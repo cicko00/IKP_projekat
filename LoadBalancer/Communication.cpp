@@ -10,9 +10,14 @@
 #include "WorkerList.h"
 #include <Windows.h>
 #include "CircularBuffer.h"
+#include <conio.h>
 
 
  
+
+
+
+
 
 
 #define DEFAULT_BUFLEN 512
@@ -21,12 +26,128 @@
 #define SERVER_IP_ADDERESS "127.0.0.1"
 #pragma comment(lib,"Ws2_32.lib")
 bool InitializeWindowsSockets();
+CRITICAL_SECTION cs;
+
+int SendToWorker(int& port, const char* msg,int cnt);
+
+
+HANDLE semaphore1;           // semafor koji ukazuje da li postoje i koliko, praznih mesta u kruznom baferu. 
+HANDLE semaphore2;            // semafor koji ukazuje koliko mesta je popunjeno u kruznom baferom.
+HANDLE semaphore3;
+
+
+
+HANDLE semaphores[3] = { semaphore1,semaphore2,semaphore3 };
+
+
+int port[3];
+ char msg[3][512];
+int i = 0;
+
+struct param1 {
+    int cnt=0;
+    int *p=&port[0];
+   const char* c=msg[0];
+
+}PARAM1;
+
+struct param2 {
+    int cnt = 1;
+    int *p = &port[1];
+   const char* c = msg[1];
+
+}PARAM2;
+
+struct param3 {
+    int cnt = 2;
+    int *p = &port[2];
+   const char* c = msg[2];
+
+}PARAM3;
+
+DWORD print1ID, print2ID, print3ID;
+HANDLE hPrint1, hPrint2, hPrint3;
+
+
+DWORD WINAPI ff1(LPVOID lpParam) {
+
+    
+    int *p = (*(param1*)lpParam).p;
+   const char *c = (*(param1*)lpParam).c;
+    int cnt= (*(param1*)lpParam).cnt;
+    
+    return SendToWorker(*p,c,cnt);
+}
+
+
+DWORD WINAPI ff2(LPVOID lpParam) {
+    int *p = (*(param2*)lpParam).p;
+   const char* c = (*(param2*)lpParam).c;
+    int cnt = (*(param2*)lpParam).cnt;
+
+    return SendToWorker(*p, c, cnt);
+
+}
+DWORD WINAPI ff3(LPVOID lpParam) {
+    int *p = (*(param3*)lpParam).p;
+   const char* c = (*(param3*)lpParam).c;
+    int cnt = (*(param3*)lpParam).cnt;
+
+    return SendToWorker(*p, c, cnt);
+}
+
+int WorkerLink() {
+
+    semaphores[0] = CreateSemaphore(0, 0, 1, NULL);
+    semaphores[1] = CreateSemaphore(0, 0, 1, NULL);
+    semaphores[2] = CreateSemaphore(0, 0, 1, NULL);
+    
+    hPrint1 = CreateThread(NULL, 0, &ff1, &PARAM1, 0, &print1ID);
+    hPrint2 = CreateThread(NULL, 0, &ff2, &PARAM2, 0, &print2ID);
+    hPrint3 = CreateThread(NULL, 0, &ff3, &PARAM3, 0, &print3ID);
+    InitializeCriticalSection(&cs);
+    
+    while (1) {
+        char poruka[512] = "";
+        strcpy_s(poruka, circularBufferPop());
+       
+        
+        if (strcmp(poruka, "") != 0) {
+
+            port[i] = findMin();
+            strcpy_s(msg[i], poruka);
+           
+            
+            
+            ReleaseSemaphore(semaphores[i], 1, 0);
+
+            if (i == 2)
+            {
+                i = 0;
+            }
+            else { i++; }
+
+            //pusti semafor
+        }
+
+
+
+    }
+}
 
 
 
 
 
-int SendToWorker(int &port,char* msg) {
+
+
+
+
+
+
+
+int SendToWorker(int &port,const char* msg,int cnt) {
+    
     char sendbuf[512]="";
     const char* message="";
     // socket used to communicate with server
@@ -44,57 +165,60 @@ int SendToWorker(int &port,char* msg) {
         // by InitializeWindowsSockets() function
         return 1;
     }
- while (1) {
+ while (1) 
+ {
 
-     strcpy_s(sendbuf, circularBufferPop());
-     
-  if (strcmp(sendbuf,"") !=0) {
+      WaitForSingleObject(semaphores[cnt],INFINITE);
       
-    // create a socket
-    connectSocket = socket(AF_INET,
-        SOCK_STREAM,
-        IPPROTO_TCP);
+         
 
-    if (connectSocket == INVALID_SOCKET)
-    {
-        printf("socket failed with error: %ld\n", WSAGetLastError());
-        WSACleanup();
-        return 1;
-    }
- 
-       int port = findMin();
-    // create and initialize address structure
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = inet_addr(SERVER_IP_ADDERESS);
-    serverAddress.sin_port = htons(u_short(port));
-    // connect to server specified in serverAddress and socket connectSocket
-    if (connect(connectSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
-    {
-        printf("Unable to connect to server.\n");
-        closesocket(connectSocket);
-        WSACleanup();
-    }
+         
 
-    // Send an prepared message with null terminator included
-   
+         // create a socket
+         connectSocket = socket(AF_INET,
+             SOCK_STREAM,
+             IPPROTO_TCP);
 
-           
-    
-    
-            iResult = send(connectSocket, sendbuf, (int)strlen(sendbuf) + 1, 0);
+         if (connectSocket == INVALID_SOCKET)
+         {
+             printf("socket failed with error: %ld\n", WSAGetLastError());
+             WSACleanup();
+             return 1;
+         }
 
-            if (iResult == SOCKET_ERROR)
-            {
-                printf("send failed with error: %d\n", WSAGetLastError());
-                closesocket(connectSocket);
-                WSACleanup();
-                return 1;
-            }
-            AddData(port);
-            printf("Bytes Sent: %ld : %s\n", iResult,sendbuf);
-  }
 
+         // create and initialize address structure
+         sockaddr_in serverAddress;
+         serverAddress.sin_family = AF_INET;
+         serverAddress.sin_addr.s_addr = inet_addr(SERVER_IP_ADDERESS);
+         serverAddress.sin_port = htons(u_short(port));
+         // connect to server specified in serverAddress and socket connectSocket
+         if (connect(connectSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
+         {
+             printf("Unable to connect to server.\n");
+             closesocket(connectSocket);
+             WSACleanup();
+         }
+
+         // Send an prepared message with null terminator included
+
+
+
+
+
+         iResult = send(connectSocket, msg, (int)strlen(msg) + 1, 0);
+
+         if (iResult == SOCKET_ERROR)
+         {
+             printf("send failed with error: %d\n", WSAGetLastError());
+             closesocket(connectSocket);
+             WSACleanup();
+             return 1;
+         }
+         AddData(port);
+         printf("Bytes Sent: %ld : %s\n", iResult, msg);
+
+     
  }
 
     // cleanup

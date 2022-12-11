@@ -130,13 +130,11 @@
     <ClCompile Include="CircularBuffer.cpp" />
     <ClCompile Include="Communication.cpp" />
     <ClCompile Include="LoadBalancer.cpp" />
-    <ClCompile Include="ThreadPoolA.cpp" />
     <ClCompile Include="WorkerList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircularBuffer.h" />
     <ClInclude Include="Communication.h" />
-    <ClInclude Include="ThreadPoolA.h" />
     <ClInclude Include="WorkerList.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

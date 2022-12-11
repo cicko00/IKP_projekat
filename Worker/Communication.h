@@ -2,6 +2,7 @@
 #ifndef Communication
 #define Communaction
 
+
 int Activate(int port);
 
 

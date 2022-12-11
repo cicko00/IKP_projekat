@@ -63,6 +63,8 @@ int findMin() {
 	int port = NULL;
 	int minVal = INT_MAX;
 
+
+
 	while (1) {
 		if (s->data_count <= minVal) {
 			minVal = s->data_count;

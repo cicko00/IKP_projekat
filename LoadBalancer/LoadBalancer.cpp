@@ -17,9 +17,9 @@ DWORD WINAPI f2(LPVOID lpParam) {
    return ClientLink();
 }
 
-//DWORD WINAPI f3(LPVOID lpParam) {
- //   return WorkerLink();
-//}
+DWORD WINAPI f3(LPVOID lpParam) {
+    return WorkerLink();
+}
 
 
 
@@ -39,11 +39,11 @@ int  main(void)
     hPrint1 = CreateThread(NULL, 0, &f1, NULL, 0, &print1ID);
     
     hPrint2 = CreateThread(NULL, 0, &f2, NULL, 0, &print2ID);
-    //hPrint3 = CreateThread(NULL, 0, &f3, NULL, 0, &print3ID);
+    hPrint3 = CreateThread(NULL, 0, &f3, NULL, 0, &print3ID);
     
     int cKey = getchar();
 
     CloseHandle(hPrint1);
     CloseHandle(hPrint2);
-//    CloseHandle(hPrint3);
+    CloseHandle(hPrint3);
 }

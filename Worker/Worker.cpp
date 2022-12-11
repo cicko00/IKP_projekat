@@ -37,6 +37,10 @@ DWORD WINAPI f2(LPVOID lpParam) {
 
 int  main(void)
 {
+  
+
+
+
         printf("Unesite port:\n");
         
         

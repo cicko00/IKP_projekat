@@ -5,11 +5,15 @@
 int ClientLink();
 
 
+int WorkerLink();
+
+
+
 
 
 int WorkerEcho();
 
-int SendToWorker(int port, char msg[]);
+
 
 //int WorkerLink();
 
