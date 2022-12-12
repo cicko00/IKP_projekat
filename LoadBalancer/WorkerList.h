@@ -1,7 +1,7 @@
 #ifndef WorkerList
 #define WorkerList
 
-void AddElement(int port);
+void AddElement(int port_RD,int port_SD);
 
 void AddData(int port);
 

@@ -20,7 +20,14 @@ CRITICAL_SECTION cs;
 int SendToWorker(int& port, const char* msg,int cnt);
 int SendToWorker_We(int& pMin, int& pMax, int count, int& data);
 
+struct Activate_struct {
+    int i[2];
+}ACTIVATE_STRUCT;
 
+struct Send_data {
+    int portmin;
+    int brojporuka;
+}SEND_DATA;
 
 HANDLE semaphore1;           // semafor koji ukazuje da li postoje i koliko, praznih mesta u kruznom baferu. 
 HANDLE semaphore2;            // semafor koji ukazuje koliko mesta je popunjeno u kruznom baferom.
@@ -228,11 +235,11 @@ int SendToWorker_We(int &port_weMax, int &port_weMin, int cnt, int &brojPoruka)
 
         // Send an prepared message with null terminator included
 
-        int paket[2];
-        paket[0] = port_weMin;
-        paket[1] = brojPoruka;
+        
+        SEND_DATA.portmin = port_weMin;
+        SEND_DATA.brojporuka = brojPoruka;
 
-        iResult = send(connectSocket, (const char*)paket, (int)strlen((const char*)paket) + 1, 0);
+        iResult = send(connectSocket, (const char*)&SEND_DATA, sizeof(SEND_DATA), 0);
 
         if (iResult == SOCKET_ERROR)
         {
@@ -242,7 +249,7 @@ int SendToWorker_We(int &port_weMax, int &port_weMin, int cnt, int &brojPoruka)
             return 1;
         }
         
-        printf("Bytes Sent: %ld : port min: %d,broj poruka: %d\n", iResult, paket[0], paket[1]);
+        printf("Bytes Sent: %ld : port min: %d,broj poruka: %d\n", iResult, SEND_DATA.portmin, SEND_DATA.brojporuka);
     }
 
     // cleanup
@@ -580,21 +587,23 @@ int WorkerEcho(){
 
         
             // Receive data until the client shuts down the connection
-            iResult = recv(acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
+            iResult = recv(acceptedSocket,(char*)&ACTIVATE_STRUCT, sizeof(ACTIVATE_STRUCT), 0);
             if (iResult > 0)
             {
-                int i = atoi(recvbuf);
-                AddElement(i);
-                printf("\nNew worker with port: %d succesfully added\n",i);
+                
+                AddElement(ACTIVATE_STRUCT.i[0], ACTIVATE_STRUCT.i[1]);
+                printf("\nNew worker with port: %d succesfully added\n", ACTIVATE_STRUCT.i[0]);
                 //port_weMax[3], port_weMin[3], brojPoruka[3]
                 while (1)
                 {
+                   
                     int* niz = DistributionData();
                     if (niz[3] == 0)
                     {
                         port_weMax[j] = niz[0];
                         port_weMin[j] = niz[1];
                         brojPoruka[j] = niz[2];
+                        printf("\n BROJ PORUKA KOJE TREBA POSLATI %d  \n",niz[2]);
 
                         ReleaseSemaphore(semaphores_we[j], 1, 0);
 

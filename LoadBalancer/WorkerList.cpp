@@ -3,7 +3,8 @@
 #include <stdlib.h>
 
 struct node {
-	int port;
+	int port_RD;
+	int port_SD;
 	int data_count=0;
 	struct node *head=NULL;
 };
@@ -12,10 +13,11 @@ struct node* first =NULL;
 struct node* current = NULL;
 
 
-void AddElement(int port)
+void AddElement(int port_RD,int port_SD)
 {
 	struct node* NEW = (struct node*)malloc(sizeof(struct node));
-	NEW->port = port;
+	NEW->port_RD = port_RD;
+	NEW->port_SD = port_SD;
 	NEW->data_count = 0;
 	
 
@@ -34,7 +36,7 @@ void AddElement(int port)
 
 }
 
-void AddData(int port){
+void AddData(int port_RD){
 
 	if (first == NULL) {
 		return;
@@ -42,7 +44,7 @@ void AddData(int port){
 	struct node* s = current;
 
 	while (1) {
-		if (s->port == port) {
+		if (s->port_RD == port_RD) {
 			s->data_count++;
 			break;
 		}
@@ -64,7 +66,7 @@ int findMin() {
 	while (1) {
 		if (s->data_count <= minVal) {
 			minVal = s->data_count;
-			port = s->port;
+			port = s->port_RD;
 
 
 		}
@@ -83,7 +85,7 @@ void PrintList(){
 		int cnt = 1;
 		while (1) {
 			
-			printf("%d :port=%d  Data:%d  \n",cnt,s->port,s->data_count);
+			printf("%d :port=%d  Data:%d  \n",cnt,s->port_RD,s->data_count);
 			cnt++;
 			if (s->head == NULL) {
 				return;
@@ -96,6 +98,7 @@ void PrintList(){
 
 int* DistributionData()
 {
+
 	int niz[4];
 	int prom = 0;
 	int flag;
@@ -110,13 +113,13 @@ int* DistributionData()
 	while (1) {
 		if (str->data_count <= min) {
 			min = str->data_count;
-			portMin = str->port;
+			portMin = str->port_RD;
 			minEl = str;
 		}
 		if (str->data_count >= max)
 		{
 			max = str->data_count;
-			portMax = str->port;
+			portMax = str->port_SD;
 			maxEl = str;
 		}
 		if (str->head == NULL) {
@@ -127,8 +130,8 @@ int* DistributionData()
 	if ((max - min) > 1)
 	{
 		prom = (max - min) / 2;
-		minEl->data_count -= prom;
-		maxEl->data_count += prom;
+		minEl->data_count += prom;
+		maxEl->data_count -= prom;
 		flag = 0;
 	}
 	else

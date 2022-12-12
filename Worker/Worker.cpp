@@ -19,13 +19,13 @@
 
 
 
-DWORD print1ID, print2ID;
-HANDLE hPrint1, hPrint2;
+DWORD print1ID, print2ID,print3ID;
+HANDLE hPrint1, hPrint2,hPrint3;
 
 
 DWORD WINAPI f1(LPVOID lpParam) {
-    int i = *(int*)lpParam;
-    return Activate(i);
+    int *i = (int*)lpParam;
+    return Activate(i[0],i[1]);
 }
 
 DWORD WINAPI f2(LPVOID lpParam) {
@@ -33,6 +33,10 @@ DWORD WINAPI f2(LPVOID lpParam) {
     return RecvData(i);
 }
 
+DWORD WINAPI f3(LPVOID lpParam) {
+    int port = *(int*)lpParam;
+    return SendData(port);
+}
 
 
 
@@ -40,28 +44,33 @@ DWORD WINAPI f2(LPVOID lpParam) {
 int  main(void)
 {
 
-        printf("Unesite port:\n");
+        printf("Unesite port za prijem poruka: \n");
         
         
 
-        int port=0;
-        scanf("%d", &port);
+        int port_RD=0;
+        scanf("%d", &port_RD);
        
+        printf("Unesite port za redistribuciju podataka: \n");
+        int port_SD = 0;
+        scanf("%d", &port_SD);
 
+    DWORD print1ID, print2ID,print3ID;
+    HANDLE hPrint1, hPrint2,hPrint3;
 
+    int paket_f2[2] = { port_RD,port_SD };
+    
+    hPrint1 = CreateThread(NULL, 0, &f1, &paket_f2, 0, &print1ID);
 
-    DWORD print1ID, print2ID;
-    HANDLE hPrint1, hPrint2;
+    hPrint2 = CreateThread(NULL, 0, &f2, &port_RD, 0, &print2ID);
 
-
-    hPrint1 = CreateThread(NULL, 0, &f1, &port, 0, &print1ID);
-
-    hPrint2 = CreateThread(NULL, 0, &f2, &port, 0, &print2ID);
+    hPrint3 = CreateThread(NULL, 0, &f3, &port_SD, 0, &print3ID);
 
     int cKey = getchar();
     int t = getchar();
     CloseHandle(hPrint1);
     CloseHandle(hPrint2);
+    CloseHandle(hPrint3);
 }
 
 
