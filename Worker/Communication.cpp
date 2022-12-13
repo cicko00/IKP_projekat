@@ -178,7 +178,7 @@ int RecvData(int port){
     }
 
     printf("Server initialized, waiting for clients.\n");
-
+    int z = 0;
     do
     {
         // Wait for clients and accept client connections.
@@ -200,7 +200,8 @@ int RecvData(int port){
         iResult = recv(acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
         if (iResult > 0)
         {
-            
+            z++;
+            printf("\nMessage recived:%s,cnt:%d ", recvbuf,z);
             MessageListAddElement(recvbuf);
             
 

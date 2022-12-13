@@ -56,12 +56,13 @@ int main()
          WSACleanup();
          return 1;
      }
-
-    do
+    int o = 0;
+    while (o < 100)
     {
-        printf("Unesite poruku: ");
-        gets_s(outgoingBuffer, OUTGOING_BUFFER_SIZE);
-
+        //printf("Unesite poruku: ");
+        //gets_s(outgoingBuffer, OUTGOING_BUFFER_SIZE);
+        const char* m = "aaa";
+        strcpy_s(outgoingBuffer,m);
         iResult = send(client_socket, outgoingBuffer, (int)strlen(outgoingBuffer), 0);  //socket, buffer, lenght, flags
 
         if (iResult == SOCKET_ERROR)
@@ -73,10 +74,11 @@ int main()
         }
 
         printf("Poruka je uspesno poslata. Ukupan broj bajtova: %ld\n", iResult);
-        printf("Da li zelite da posaljete jos poruka? ");
-        gets_s(outgoingBuffer2, OUTGOING_BUFFER_SIZE);
+        //printf("Da li zelite da posaljete jos poruka? ");
+        //gets_s(outgoingBuffer2, OUTGOING_BUFFER_SIZE);
 
-
+        o++;
+        Sleep(10);
         if (strcmp(outgoingBuffer2, "ne") == 0)
         {
             break;
@@ -87,8 +89,8 @@ int main()
         }
 
 
-
-    } while (1);
+        
+    } 
 
     iResult = shutdown(client_socket, SD_BOTH);
 

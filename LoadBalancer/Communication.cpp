@@ -452,7 +452,7 @@ int  ClientLink(){
             {
                 // connection was closed gracefully
                 printf("Connection with client closed.\n");
-                closesocket(acceptedSocket);
+                //closesocket(acceptedSocket);
             }
             else
             {

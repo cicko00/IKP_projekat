@@ -1,3 +1,6 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,31 +19,38 @@ struct circular_buffer
 
 
 struct circular_buffer* cb = NULL;
+
 //pushovanje podataka u bafer
 
 
-int circularBufferPush( const char* data)
+int circularBufferPush(const char* data)
 {
+
+	
+	
+
 
 	if (cb == NULL) {
 		cb = (struct circular_buffer*)malloc(sizeof(struct circular_buffer));
+
 		cb->push = 0;
 		cb->pop = 0;
 		cb->push_count = 0;
 		cb->pop_count = 0;
 		
 	}
+	if (cb->push == 30) //kruzni bafer je pun
+	{
+		cb->push = 0;    //sada je pokazivac opet na nultom mesto, jer je stigao do kraja
+	}
+
 	
-
-
 	strcpy_s(cb->buffer[cb->push], data);  //stavi se podatak u kruzni bafer
 	cb->push++;  //pokazivac se pomeri za +1
 	cb->push_count++;
 
-	if (cb->push == BUFFER_SIZE) //kruzni bafer je pun
-	{
-		cb->push = 0;    //sada je pokazivac opet na nultom mesto, jer je stigao do kraja
-	}
+
+
 	return cb->push_count;
 	   //upisan je podatak, counter se poveca za jedan
 }
@@ -57,6 +67,8 @@ const char* circularBufferPop()
 	}
 
 
+	
+
 	if (cb->pop_count>=cb->push_count) //nemamo elemenata u baferu
 	{
 		return "";
@@ -66,7 +78,7 @@ const char* circularBufferPop()
 	cb->pop++;
 	cb->pop_count++;
 
-	if (cb->pop == BUFFER_SIZE)
+	if (cb->pop == 30)
 	{
 		cb->pop = 0;
 	}
