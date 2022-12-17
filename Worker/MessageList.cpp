@@ -1,10 +1,11 @@
 #include "MessageList.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include<string.h>
 
 struct messagelist
 {
-	const char* message;
+	char message[512];
 	messagelist* head;
 };
 
@@ -24,7 +25,8 @@ void MessageListAddElement(const char* message)
 	{
 		NEW->head = last;
 	}
-	NEW->message = message;
+	strcpy_s(NEW->message, message);
+	
 	last = NEW;
 }
 
@@ -42,8 +44,9 @@ const char* MessageListTakeElement()
 	}
 }
 
-void ListTest()
+void PrintAll()
 {
+	int cnt = 0;
 	struct messagelist* ml = last;
 	if (ml == NULL)
 	{
@@ -52,10 +55,13 @@ void ListTest()
 	while (1)
 	{
 		printf("PORUKA: %s\n", ml->message);
+		cnt++;
 		if (ml == first)
 		{
+			printf("\n\n\nUKUPAN BROJ PORUKA: %d", cnt);
 			return;
 		}
 		ml = ml->head;
 	}
 }
+

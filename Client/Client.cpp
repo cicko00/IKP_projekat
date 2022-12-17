@@ -1,5 +1,6 @@
 // Client.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +24,8 @@ int main()
     char outgoingBuffer[OUTGOING_BUFFER_SIZE];
     char outgoingBuffer2[OUTGOING_BUFFER_SIZE];
     int serverPort = SERVER_PORT;
-
+     char m[10] = "aaa";
+     char c[5] = "";
     int iResult;
 
 
@@ -59,11 +61,16 @@ int main()
     int o = 0;
     while (o < 100)
     {
+        char temp[10] = "";
+        _itoa(o + 1, temp, 10);
+         char buff[30]="message_";
+         strcat_s(buff, temp);
+
         //printf("Unesite poruku: ");
         //gets_s(outgoingBuffer, OUTGOING_BUFFER_SIZE);
-        const char* m = "aaa";
+        
         strcpy_s(outgoingBuffer,m);
-        iResult = send(client_socket, outgoingBuffer, (int)strlen(outgoingBuffer), 0);  //socket, buffer, lenght, flags
+        iResult = send(client_socket, buff, (int)strlen(buff), 0);  //socket, buffer, lenght, flags
 
         if (iResult == SOCKET_ERROR)
         {

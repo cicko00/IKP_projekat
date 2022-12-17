@@ -71,6 +71,10 @@ int  main(void)
     CloseHandle(hPrint1);
     CloseHandle(hPrint2);
     CloseHandle(hPrint3);
+
+    PrintAll();
+
+    getchar();
 }
 
 

@@ -5,6 +5,6 @@
 void MessageListAddElement(const char* message);
 
 const char* MessageListTakeElement();
-void ListTest();
+void PrintAll();
 
 #endif // MessageList

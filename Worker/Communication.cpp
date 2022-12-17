@@ -17,7 +17,7 @@ struct Activate_struct {
 
 struct SD_struct {
     int p;
-    const char* msg;
+    char msg[512];
 }SD_STRUCT;
 
 struct Send_data {
@@ -25,7 +25,7 @@ struct Send_data {
     int brojporuka;
 }SEND_DATA;
 bool InitializeWindowsSockets();
-int SendDataClient(int port, const char* message, int minport);
+int SendDataClient(int port, char message[512], int minport);
 
 int Activate(int port_RD,int port_SD){
     
@@ -107,7 +107,7 @@ int RecvData(int port){
     // variable used to store function return value
     int iResult;
     // Buffer used for storing incoming data
-    char recvbuf[DEFAULT_BUFLEN];
+    char recvbuf[DEFAULT_BUFLEN]="";
 
     if (InitializeWindowsSockets() == false)
     {
@@ -195,7 +195,7 @@ int RecvData(int port){
             return 1;
         }
 
-
+        char recvbuf[DEFAULT_BUFLEN] = "";
         // Receive data until the client shuts down the connection
         iResult = recv(acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
         if (iResult > 0)
@@ -364,8 +364,10 @@ int SendData(int port)
             printf("\nRECIVING REQUEST FOR REDISTRIBUTION: port reciver:%d message count: %d\n",SEND_DATA.portmin,SEND_DATA.brojporuka);
             for (int k = 0; k < SEND_DATA.brojporuka; k++)
             {
-               const char* m= MessageListTakeElement();
-               SendDataClient(10000, m, SEND_DATA.portmin); //--------------ovde port promeniti
+                char m[512]; 
+               
+                strcpy_s(m, MessageListTakeElement());
+               SendDataClient(5057, m, SEND_DATA.portmin); 
 
             }
 
@@ -411,7 +413,7 @@ int SendData(int port)
 }
 
 
-int SendDataClient(int port,const char* message,int minport)  //minport salje dalje
+int SendDataClient(int p,char message[512], int minport)  //minport salje dalje
 {
     // socket used to communicate with server
     SOCKET connectSocket = INVALID_SOCKET;
@@ -445,7 +447,7 @@ int SendDataClient(int port,const char* message,int minport)  //minport salje da
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = inet_addr(SERVER_IP_ADDERESS);
-    serverAddress.sin_port = htons(u_short(port));
+    serverAddress.sin_port = htons(u_short(p));
     // connect to server specified in serverAddress and socket connectSocket
     if (connect(connectSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
     {
@@ -457,7 +459,8 @@ int SendDataClient(int port,const char* message,int minport)  //minport salje da
   
     
     SD_STRUCT.p = minport;
-    SD_STRUCT.msg = message;
+    strcpy_s(SD_STRUCT.msg, message);
+    
     // Send an prepared message with null terminator included
     iResult = send(connectSocket,(const char*)&SD_STRUCT, sizeof(SD_STRUCT), 0);
 

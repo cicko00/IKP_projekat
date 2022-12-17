@@ -1,4 +1,6 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+
 //test
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +14,7 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT_CLIENTLINK "5059"
 #define DEFAULT_PORT_WORKERECHO "5058"
+#define DEFAULT_PORT_REDISTRIBUTER "5057"
 #define SERVER_IP_ADDERESS "127.0.0.1"
 #pragma comment(lib,"Ws2_32.lib")
 bool InitializeWindowsSockets();
@@ -19,6 +22,7 @@ CRITICAL_SECTION cs;
 
 int SendToWorker(int& port, const char* msg,int cnt);
 int SendToWorker_We(int& pMin, int& pMax, int count, int& data);
+
 
 struct Activate_struct {
     int i[2];
@@ -29,12 +33,19 @@ struct Send_data {
     int brojporuka;
 }SEND_DATA;
 
+struct SD_struct {
+    int p;
+    char msg[512];
+}SD_STRUCT;
+
+int RedistributerClient(SD_struct s);
 HANDLE semaphore1;           // semafor koji ukazuje da li postoje i koliko, praznih mesta u kruznom baferu. 
 HANDLE semaphore2;            // semafor koji ukazuje koliko mesta je popunjeno u kruznom baferom.
 HANDLE semaphore3;
 HANDLE semaphore_1;           // semafor koji ukazuje da li postoje i koliko, praznih mesta u kruznom baferu. 
 HANDLE semaphore_2;            // semafor koji ukazuje koliko mesta je popunjeno u kruznom baferom.
 HANDLE semaphore_3;
+HANDLE semaphore_we_end_of_loop;
 
 
 HANDLE semaphores[3] = { semaphore1,semaphore2,semaphore3 };
@@ -241,6 +252,8 @@ int SendToWorker_We(int &port_weMax, int &port_weMin, int cnt, int &brojPoruka)
 
         iResult = send(connectSocket, (const char*)&SEND_DATA, sizeof(SEND_DATA), 0);
 
+       
+
         if (iResult == SOCKET_ERROR)
         {
             printf("send failed with error: %d\n", WSAGetLastError());
@@ -250,6 +263,9 @@ int SendToWorker_We(int &port_weMax, int &port_weMin, int cnt, int &brojPoruka)
         }
         
         printf("Bytes Sent: %ld : port min: %d,broj poruka: %d\n", iResult, SEND_DATA.portmin, SEND_DATA.brojporuka);
+        if (cnt == 2) {
+            ReleaseSemaphore(semaphore_we_end_of_loop, 1, NULL);
+        }
     }
 
     // cleanup
@@ -490,6 +506,7 @@ int WorkerEcho(){
     semaphores_we[0] = CreateSemaphore(0, 0, 1, NULL);
     semaphores_we[1] = CreateSemaphore(0, 0, 1, NULL);
     semaphores_we[2] = CreateSemaphore(0, 0, 1, NULL);
+    semaphore_we_end_of_loop = CreateSemaphore(0, 0, 1, NULL);
 
     hPrint_1 = CreateThread(NULL, 0, &f1_we, &PARAM_1, 0, &print1_ID);
     hPrint_2 = CreateThread(NULL, 0, &f2_we, &PARAM_2, 0, &print2_ID);
@@ -609,6 +626,7 @@ int WorkerEcho(){
 
                         if (j == 2)
                         {
+                            WaitForSingleObject(semaphore_we_end_of_loop, INFINITE);
                             j = 0;
                         }
                         else
@@ -671,5 +689,218 @@ bool InitializeWindowsSockets()
     return true;
 }
 
+int DataRedistributer() {
+    // Socket used for listening for new clients 
+    SOCKET listenSocket = INVALID_SOCKET;
+    // Socket used for communication with client
+    SOCKET acceptedSocket = INVALID_SOCKET;
+    // variable used to store function return value
+    int iResult;
+    // Buffer used for storing incoming data
 
 
+    if (InitializeWindowsSockets() == false)
+    {
+        // we won't log anything since it will be logged
+        // by InitializeWindowsSockets() function
+        return 1;
+    }
+
+    // Prepare address information structures
+    addrinfo* resultingAddress = NULL;
+    addrinfo hints;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;       // IPv4 address
+    hints.ai_socktype = SOCK_STREAM; // Provide reliable data streaming
+    hints.ai_protocol = IPPROTO_TCP; // Use TCP protocol
+    hints.ai_flags = AI_PASSIVE;     // 
+
+    // Resolve the server address and port
+    iResult = getaddrinfo(NULL, DEFAULT_PORT_REDISTRIBUTER, &hints, &resultingAddress);
+    if (iResult != 0)
+    {
+        printf("getaddrinfo failed with error: %d\n", iResult);
+        WSACleanup();
+        return 1;
+    }
+
+    // Create a SOCKET for connecting to server
+    listenSocket = socket(AF_INET,      // IPv4 address famly
+        SOCK_STREAM,  // stream socket
+        IPPROTO_TCP); // TCP
+
+    if (listenSocket == INVALID_SOCKET)
+    {
+        printf("socket failed with error: %ld\n", WSAGetLastError());
+        freeaddrinfo(resultingAddress);
+        WSACleanup();
+        return 1;
+    }
+
+    // Setup the TCP listening socket - bind port number and local address 
+    // to socket
+    iResult = bind(listenSocket, resultingAddress->ai_addr, (int)resultingAddress->ai_addrlen);
+    if (iResult == SOCKET_ERROR)
+    {
+        printf("bind failed with error: %d\n", WSAGetLastError());
+        freeaddrinfo(resultingAddress);
+        closesocket(listenSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    // Since we don't need resultingAddress any more, free it
+    freeaddrinfo(resultingAddress);
+
+    // Set listenSocket in listening mode
+    iResult = listen(listenSocket, SOMAXCONN);
+    if (iResult == SOCKET_ERROR)
+    {
+        printf("listen failed with error: %d\n", WSAGetLastError());
+        closesocket(listenSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    printf("Server initialized, waiting for clients.\n");
+
+    do
+    {
+        // Wait for clients and accept client connections.
+        // Returning value is acceptedSocket used for further
+        // Client<->Server communication. This version of
+        // server will handle only one client.
+        acceptedSocket = accept(listenSocket, NULL, NULL);
+
+        if (acceptedSocket == INVALID_SOCKET)
+        {
+            printf("accept failed with error: %d\n", WSAGetLastError());
+            closesocket(listenSocket);
+            WSACleanup();
+            return 1;
+        }
+
+
+        do
+        {
+
+            char recvbuf[DEFAULT_BUFLEN] = "";
+            // Receive data until the client shuts down the connection
+            iResult = recv(acceptedSocket, (char*)&SD_STRUCT, sizeof(SD_STRUCT), 0);
+            if (iResult > 0)
+            {
+
+                RedistributerClient(SD_STRUCT);
+
+            }
+            else if (iResult == 0)
+            {
+                // connection was closed gracefully
+                //printf("Connection with client closed.\n");
+                //closesocket(acceptedSocket);
+            }
+            else
+            {
+                // there was an error during recv
+                printf("recv failed with error: %d\n", WSAGetLastError());
+                closesocket(acceptedSocket);
+            }
+        } while (iResult > 0);
+
+        // here is where server shutdown loguc could be placed
+
+    } while (1);
+
+    // shutdown the connection since we're done
+    iResult = shutdown(acceptedSocket, SD_SEND);
+    if (iResult == SOCKET_ERROR)
+    {
+        printf("shutdown failed with error: %d\n", WSAGetLastError());
+        closesocket(acceptedSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    // cleanup
+    closesocket(listenSocket);
+    closesocket(acceptedSocket);
+    WSACleanup();
+
+    return 1;
+
+}
+
+
+int RedistributerClient(SD_struct s) {
+    // socket used to communicate with server
+    SOCKET connectSocket = INVALID_SOCKET;
+    // variable used to store function return value
+    int iResult;
+    // message to send
+
+
+
+
+    if (InitializeWindowsSockets() == false)
+    {
+        // we won't log anything since it will be logged
+        // by InitializeWindowsSockets() function
+        return 1;
+    }
+
+    // create a socket
+    connectSocket = socket(AF_INET,
+        SOCK_STREAM,
+        IPPROTO_TCP);
+
+    if (connectSocket == INVALID_SOCKET)
+    {
+        printf("socket failed with error: %ld\n", WSAGetLastError());
+        WSACleanup();
+        return 1;
+    }
+
+    // create and initialize address structure
+    sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = inet_addr(SERVER_IP_ADDERESS);
+    serverAddress.sin_port = htons(u_short(s.p));
+    // connect to server specified in serverAddress and socket connectSocket
+    if (connect(connectSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
+    {
+        printf("Unable to connect to server.\n");
+        closesocket(connectSocket);
+        WSACleanup();
+    }
+
+
+
+    
+     char* message;
+    message= SD_STRUCT.msg;
+   
+    
+    
+    // Send an prepared message with null terminator included
+    iResult = send(connectSocket, message, (int)strlen(SD_STRUCT.msg), 0);
+
+    if (iResult == SOCKET_ERROR)
+    {
+        printf("send failed with error: %d\n", WSAGetLastError());
+        closesocket(connectSocket);
+        WSACleanup();
+        return 1;
+    }
+    else
+    {
+        printf("\nmessage redistributed to another worker!\n");
+    }
+
+
+    // cleanup
+    closesocket(connectSocket);
+    WSACleanup();
+
+    return 0;
+}
