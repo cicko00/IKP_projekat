@@ -59,7 +59,7 @@ int main()
          return 1;
      }
     int o = 0;
-    while (o < 100)
+    while (o < 1000)
     {
         char temp[10] = "";
         _itoa(o + 1, temp, 10);

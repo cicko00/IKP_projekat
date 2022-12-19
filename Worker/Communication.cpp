@@ -2,7 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define SERVER_IP_ADDERESS "127.0.0.1"
 #define SERVER_ECHO 5058
-#define DEFAULT_BUFLEN 512
+#define DEFAULT_BUFLEN 1024
 #include <stdio.h>
 #include <stdlib.h>
 #include "Communication.h"
@@ -17,7 +17,7 @@ struct Activate_struct {
 
 struct SD_struct {
     int p;
-    char msg[512];
+    char msg[1024];
 }SD_STRUCT;
 
 struct Send_data {
@@ -25,7 +25,7 @@ struct Send_data {
     int brojporuka;
 }SEND_DATA;
 bool InitializeWindowsSockets();
-int SendDataClient(int port, char message[512], int minport);
+int SendDataClient(int port, char message[1024], int minport);
 
 int Activate(int port_RD,int port_SD){
     
@@ -364,7 +364,7 @@ int SendData(int port)
             printf("\nRECIVING REQUEST FOR REDISTRIBUTION: port reciver:%d message count: %d\n",SEND_DATA.portmin,SEND_DATA.brojporuka);
             for (int k = 0; k < SEND_DATA.brojporuka; k++)
             {
-                char m[512]; 
+                char m[1024]; 
                
                 strcpy_s(m, MessageListTakeElement());
                SendDataClient(5057, m, SEND_DATA.portmin); 
@@ -413,7 +413,7 @@ int SendData(int port)
 }
 
 
-int SendDataClient(int p,char message[512], int minport)  //minport salje dalje
+int SendDataClient(int p,char message[1024], int minport)  //minport salje dalje
 {
     // socket used to communicate with server
     SOCKET connectSocket = INVALID_SOCKET;

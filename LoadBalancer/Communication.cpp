@@ -11,7 +11,7 @@
 #include "CircularBuffer.h"
 #include <conio.h>
 
-#define DEFAULT_BUFLEN 512
+#define DEFAULT_BUFLEN 1024
 #define DEFAULT_PORT_CLIENTLINK "5059"
 #define DEFAULT_PORT_WORKERECHO "5058"
 #define DEFAULT_PORT_REDISTRIBUTER "5057"
@@ -35,7 +35,7 @@ struct Send_data {
 
 struct SD_struct {
     int p;
-    char msg[512];
+    char msg[1024];
 }SD_STRUCT;
 
 int RedistributerClient(SD_struct s);
@@ -53,7 +53,7 @@ HANDLE semaphores_we[3] = { semaphore_1, semaphore_2, semaphore_3 };
 
 
 int port[3], port_weMax[3], port_weMin[3], brojPoruka[3];
-char msg[3][512];
+char msg[3][1024];
 int i = 0, j = 0;
 
 struct param1 {
@@ -181,7 +181,7 @@ int WorkerLink() {
     InitializeCriticalSection(&cs);
     
     while (1) {
-        char poruka[512] = "";
+        char poruka[1024] = "";
         strcpy_s(poruka, circularBufferPop());
        
         
@@ -278,7 +278,7 @@ int SendToWorker_We(int &port_weMax, int &port_weMin, int cnt, int &brojPoruka)
 
 int SendToWorker(int &port,const char* msg,int cnt) {
     
-    char sendbuf[512]="";
+    char sendbuf[1024]="";
     const char* message="";
     // socket used to communicate with server
     SOCKET connectSocket = INVALID_SOCKET;

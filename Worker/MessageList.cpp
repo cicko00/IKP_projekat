@@ -5,7 +5,7 @@
 
 struct messagelist
 {
-	char message[512];
+	char message[1024];
 	messagelist* head;
 };
 
