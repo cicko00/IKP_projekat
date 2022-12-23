@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include<string.h>
-
+#include <ws2tcpip.h>
 struct messagelist
 {
 	char message[1024];
@@ -36,12 +36,19 @@ const char* MessageListTakeElement()
 	{
 		return "";
 	}
+	
 	else
 	{
 		const char* message = last->message;
+		while (last->head == NULL) {
+			Sleep(10);
+		}
 		last = last->head;
+		
 		return message;
 	}
+	
+	
 }
 
 void PrintAll()
