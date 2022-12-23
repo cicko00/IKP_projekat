@@ -217,7 +217,7 @@ int SendToWorker_We(int &port_weMax, int &port_weMin, int cnt, int &brojPoruka)
     }
     while (1)
     {
-        WaitForSingleObject(semaphores_we[cnt], INFINITE); //da li ima max vrednost
+        WaitForSingleObject(semaphores_we[cnt], INFINITE); 
 
         // create a socket
         connectSocket = socket(AF_INET,
@@ -246,11 +246,13 @@ int SendToWorker_We(int &port_weMax, int &port_weMin, int cnt, int &brojPoruka)
 
         // Send an prepared message with null terminator included
 
-        
+        EnterCriticalSection(&cs);
         SEND_DATA.portmin = port_weMin;
         SEND_DATA.brojporuka = brojPoruka;
 
         iResult = send(connectSocket, (const char*)&SEND_DATA, sizeof(SEND_DATA), 0);
+
+        LeaveCriticalSection(&cs);
 
        
 
@@ -507,6 +509,7 @@ int WorkerEcho(){
     semaphores_we[1] = CreateSemaphore(0, 0, 1, NULL);
     semaphores_we[2] = CreateSemaphore(0, 0, 1, NULL);
     semaphore_we_end_of_loop = CreateSemaphore(0, 0, 1, NULL);
+    InitializeCriticalSection(&cs);
 
     hPrint_1 = CreateThread(NULL, 0, &f1_we, &PARAM_1, 0, &print1_ID);
     hPrint_2 = CreateThread(NULL, 0, &f2_we, &PARAM_2, 0, &print2_ID);
@@ -636,6 +639,7 @@ int WorkerEcho(){
                     }
                     else
                     {
+                        j = 0;
                         break;
                     }
                 }   
