@@ -40,4 +40,8 @@ int  main(void)
     CloseHandle(hPrint2);
     CloseHandle(hPrint3);
     CloseHandle(hPrint4);
+
+    printf("Now do snapshot.");
+    int key = getchar();
+    return 0;
 }
