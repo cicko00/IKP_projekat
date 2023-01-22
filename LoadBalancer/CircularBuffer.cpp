@@ -109,6 +109,7 @@ bool bufferCheck() {
 
 
 void cleanCirclBuffer() {
+	free(cb->buffer);
 	free(cb);
-	
+	cb = NULL;
 }

@@ -160,8 +160,10 @@ int* DistributionData()
 
 void ClearWList() {
 	
-	
+	free(NEW->head);
 	free(NEW);
+
+	NEW = NULL;
 	
 }
 
