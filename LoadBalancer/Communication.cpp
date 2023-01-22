@@ -169,6 +169,16 @@ DWORD WINAPI f3_we(LPVOID lpParam) {
     return SendToWorker_We(*pMax, *pMin, cnt, *c);
 }
 
+void freeMemory()
+{
+    CloseHandle(hPrint1);
+    CloseHandle(hPrint2);
+    CloseHandle(hPrint3);
+    CloseHandle(hPrint_1);
+    CloseHandle(hPrint_2);
+    CloseHandle(hPrint_3);
+}
+
 int WorkerLink() {
 
     semaphores[0] = CreateSemaphore(0, 0, 1, NULL);
@@ -631,6 +641,7 @@ int WorkerEcho(){
                         {
                             WaitForSingleObject(semaphore_we_end_of_loop, INFINITE);
                             j = 0;
+                            Sleep(500);
                         }
                         else
                         {

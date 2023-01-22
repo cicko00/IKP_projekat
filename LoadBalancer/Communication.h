@@ -15,6 +15,7 @@ int WorkerEcho();
 
 int DataRedistributer();
 
+void freeMemory();
 //int WorkerLink();
 
 #endif

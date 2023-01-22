@@ -105,3 +105,10 @@ bool bufferCheck() {
 		return false;
 	}
 }
+
+
+
+void cleanCirclBuffer() {
+	free(cb);
+	
+}

@@ -68,11 +68,16 @@ int  main(void)
 
     int cKey = getchar();
     int t = getchar();
+    
     CloseHandle(hPrint1);
     CloseHandle(hPrint2);
     CloseHandle(hPrint3);
 
     PrintAll();
+
+
+    int ttt = getchar();
+    clearMsgList();
 
     getchar();
 }

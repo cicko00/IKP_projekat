@@ -11,11 +11,12 @@ struct node {
 
 struct node* first =NULL;
 struct node* current = NULL;
+struct node* NEW = NULL;
 
 
 void AddElement(int port_RD,int port_SD)
 {
-	struct node* NEW = (struct node*)malloc(sizeof(struct node));
+	NEW = (struct node*)malloc(sizeof(struct node));
 	NEW->port_RD = port_RD;
 	NEW->port_SD = port_SD;
 	NEW->data_count = 0;
@@ -32,6 +33,8 @@ void AddElement(int port_RD,int port_SD)
 	}
 
 	current = NEW;
+
+	
 
 
 }
@@ -54,6 +57,9 @@ void AddData(int port_RD){
 		s = s->head;
 
 	}
+
+	
+
 }
 
 int findMin() {
@@ -71,12 +77,15 @@ int findMin() {
 
 		}
 		if (s->head == NULL) {
+			
 			return port;
 
 		}
 		s = s->head;
 
 	}
+
+
 }
 
 void PrintList(){
@@ -143,10 +152,18 @@ int* DistributionData()
 	niz[2] = prom;
 	niz[3] = flag;
 
+	
+	
+
 	return niz;
 }
 
-
+void ClearWList() {
+	
+	
+	free(NEW);
+	
+}
 
 
 	

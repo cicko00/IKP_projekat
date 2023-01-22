@@ -11,10 +11,11 @@ struct messagelist
 
 struct messagelist* first = NULL;
 struct messagelist* last = NULL;
+struct messagelist* NEW = NULL;
 
 void MessageListAddElement(const char* message)
 {
-	struct messagelist* NEW = (struct messagelist*)malloc(sizeof(struct messagelist));
+	 NEW = (struct messagelist*)malloc(sizeof(struct messagelist));
 
 	if (first == NULL)
 	{
@@ -70,5 +71,13 @@ void PrintAll()
 		}
 		ml = ml->head;
 	}
+}
+
+
+void clearMsgList() {
+	free(NEW);
+	
+	
+	
 }
 

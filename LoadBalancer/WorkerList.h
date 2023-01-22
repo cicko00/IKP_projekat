@@ -11,4 +11,6 @@ void PrintList();
 
 int* DistributionData();
 
+void ClearWList();
+
 #endif // WorkerList

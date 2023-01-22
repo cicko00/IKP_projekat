@@ -34,6 +34,8 @@ int  main(void)
     
     int cKey = getchar();
 
+    freeMemory();
+    ClearWList();
     CloseHandle(hPrint1);
     CloseHandle(hPrint2);
     CloseHandle(hPrint3);
